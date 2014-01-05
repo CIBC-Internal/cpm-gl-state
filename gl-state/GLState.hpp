@@ -13,58 +13,6 @@ namespace CPM_GL_STATE_NS {
 #define CPM_GL_STATE_MAX_TEXTURE_UNITS 12
 #endif
 
-/// Front or back face culling.
-enum STATE_CULL 
-{
-  CULL_FRONT,
-  CULL_BACK
-};
-
-enum CULL_ORDER
-{
-  ORDER_CCW,
-  ORDER_CW
-};
-
-enum BLEND_FUNC 
-{
-  BF_ZERO,
-  BF_ONE,
-  BF_SRC_COLOR,
-  BF_ONE_MINUS_SRC_COLOR,
-  BF_DST_COLOR,
-  BF_ONE_MINUS_DST_COLOR,
-  BF_SRC_ALPHA,
-  BF_ONE_MINUS_SRC_ALPHA,
-  BF_DST_ALPHA,
-  BF_ONE_MINUS_DST_ALPHA,
-  BF_SRC_ALPHA_SATURATE
-};
-
-enum BLEND_EQ {
-  BE_FUNC_ADD,
-  BE_FUNC_SUBTRACT,
-  BE_FUNC_REVERSE_SUBTRACT,
-  BE_MIN,
-  BE_MAX
-};
-
-/// Settings for the depth function.
-enum DEPTH_FUNC {
-  DF_NEVER,
-  DF_LESS,
-  DF_EQUAL,
-  DF_LEQUAL,
-  DF_GREATER,
-  DF_NOTEQUAL,
-  DF_GEQUAL,
-  DF_ALWAYS
-};
-
-/// Represents a one of a multitude of OpenGL states.
-/// In order for changes to be reflected on the GPU, state must be modified
-/// through the StateManager. This class only represents a snapshot of some GPU 
-/// state. It knows nothing about the current state of the GPU.
 class GLState
 {
 public:
@@ -159,13 +107,48 @@ public:
   bool    getBlendEnable()             {return mBlendEnable;}
   void    applyBlendEnable(bool force, GLState* curState = nullptr);
 
-  void setBlendEquation(BLEND_EQ value, bool apply = false, bool force = false);
-  void setBlendFunction(BLEND_FUNC src, BLEND_FUNC dest, bool apply = false, bool force = false);
-  void setDepthMask(bool value,         bool apply = false, bool force = false);
-  void setColorMask(bool mask,          bool apply = false, bool force = false);
-  void setLineWidth(float width,        bool apply = false, bool force = false);
-  void setLineSmoothingEnable(bool value, bool apply = false, bool force = false);
+  /// Set the blending equation
+  /// OpenGL: glBlendEquation(value)
+  /// Example values: GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT,
+  ///                 GL_MIN (no ES 2.0), GL_MAX (no ES 2.0).
+  void    setBlendEquation(GLenum value);
+  GLenum  getBlendEquation();
+  void    applyBlendEquation(bool force, GLState* curState = nullptr);
 
+  /// Set blending function
+  /// OpenGL: glBlendFunc(src, dst)
+  /// Example values: GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
+  ///                 GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA,
+  ///                 GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
+  ///                 GL_SRC_ALPHA_SATURATE.
+  void    setBlendFunction(GLenum src, GLenum dest) {mBlendFuncSrc = src; mBlendFuncDst = dest;}
+  std::pair<GLenum, GLenum> getBlendFunction()      {return std::make_pair(mBlendFuncSrc, mBlendFuncDst);}
+  void    applyBlendEquation(bool force, GLState* curState = nullptr);
+
+  /// Set depth mask
+  /// OpenGL: glDepthMask(value)
+  void    setDepthMask(GLboolean value)   {mDepthMask = value;}
+  GLboolean getDepthMask()                {return mDepthMask;}
+  void    applyDepthMask(bool force, GLState* curState = nullptr);
+
+  /// Set color mask
+  /// OpenGL: glColorMask(red, green, blue, alpha)
+  void    setColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
+  std::tuple<GLboolean, GLboolean, GLboolean, GLboolean> getColorMask();
+  void    applyColorMask(bool force, GLState* curState = nullptr);
+
+  /// Set line width.
+  /// OpenGL: glLineWidth()
+  void    setLineWidth(float width) {mLineWidth = width;}
+  float   getLineWidth()            {return mLineWidth;}
+  void    applyLineWidth(bool force, GLState* curState = nullptr);
+
+  /// Set line smoothing.
+  /// OpenGL: GL(glEnable(GL_LINE_SMOOTH));
+  /// NOTE: Not supported in OpenGL ES.
+  void    setLineSmoothingEnable(bool value)  {mLineSmoothing = value;}
+  bool    getLineSmoothingEnable()            {return mLineSmoothing;}
+  void    applyLineWidth(bool force, GLState* curState = nullptr);
   /// @}
 
   /// This reads state from OpenGL, only call when a context is active.
@@ -179,12 +162,16 @@ public:
   GLenum      mCullFrontFace;
 
   bool        mBlendEnable;
-  BLEND_EQ    mBlendEquation;
-  BLEND_FUNC  mBlendFuncSrc;
-  BLEND_FUNC  mBlendFuncDst;
+  GLenum      mBlendEquation;
+  GLenum      mBlendFuncSrc;
+  GLenum      mBlendFuncDst;
 
-  bool        mDepthMask;
-  bool        mColorMask;
+  GLboolean   mDepthMask;
+
+  GLboolean   mColorMaskRed;
+  GLboolean   mColorMaskGreen;
+  GLboolean   mColorMaskBlue;
+  GLboolean   mColorMaskAlpha;
 
   float       mLineWidth;       ///< glLineWidth(...)
   bool        mLineSmoothing;   ///< GL_LINE_SMOOTH - Anti-aliasing for lines

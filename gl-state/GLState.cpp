@@ -3,158 +3,23 @@
 
 namespace CPM_GL_STATE_NS {
 
-/// Valid texture states.
-GLenum validTextureStates[] = {};
-
 // All of these functions can be made into a 2D array (mimicking a 1-1 function).
 
 //------------------------------------------------------------------------------
-GLenum CULL_ORDERToGL(CULL_ORDER order)
-{
-  switch (order)
-  {
-    case ORDER_CCW:                 return GL_CCW;
-    case ORDER_CW:                  return GL_CW;
-  }
-  return GL_CCW;  // CCW is GL's default
-}
-
-//------------------------------------------------------------------------------
-CULL_ORDER GLToCULL_ORDER(GLenum order)
-{
-  switch (order)
-  {
-    case GL_CCW:                    return ORDER_CCW;
-    case GL_CW:                     return ORDER_CW;
-  }
-  return ORDER_CCW;
-}
-
-//------------------------------------------------------------------------------
-GLenum BLEND_FUNCToGL(BLEND_FUNC func)
-{
-  switch (func) 
-  {
-    case BF_ZERO:                   return GL_ZERO;
-    case BF_ONE:                    return GL_ONE;
-    case BF_SRC_COLOR:              return GL_SRC_COLOR;
-    case BF_ONE_MINUS_SRC_COLOR:    return GL_ONE_MINUS_SRC_COLOR;
-    case BF_DST_COLOR:              return GL_DST_COLOR;
-    case BF_ONE_MINUS_DST_COLOR:    return GL_ONE_MINUS_DST_COLOR;
-    case BF_SRC_ALPHA:              return GL_SRC_ALPHA;
-    case BF_ONE_MINUS_SRC_ALPHA:    return GL_ONE_MINUS_SRC_ALPHA;
-    case BF_DST_ALPHA:              return GL_DST_ALPHA;
-    case BF_ONE_MINUS_DST_ALPHA:    return GL_ONE_MINUS_DST_ALPHA;
-    case BF_SRC_ALPHA_SATURATE:     return GL_SRC_ALPHA_SATURATE;
-  }
-  return GL_ONE;
-}
-
-//------------------------------------------------------------------------------
-BLEND_FUNC GLToBLEND_FUNC(GLenum func) 
-{
-  switch (func) 
-  {
-    case GL_ZERO:                   return BF_ZERO;
-    case GL_ONE:                    return BF_ONE;
-    case GL_SRC_COLOR:              return BF_SRC_COLOR;
-    case GL_ONE_MINUS_SRC_COLOR:    return BF_ONE_MINUS_SRC_COLOR;
-    case GL_DST_COLOR:              return BF_DST_COLOR;
-    case GL_ONE_MINUS_DST_COLOR:    return BF_ONE_MINUS_DST_COLOR;
-    case GL_SRC_ALPHA:              return BF_SRC_ALPHA;
-    case GL_ONE_MINUS_SRC_ALPHA:    return BF_ONE_MINUS_SRC_ALPHA;
-    case GL_DST_ALPHA:              return BF_DST_ALPHA;
-    case GL_ONE_MINUS_DST_ALPHA:    return BF_ONE_MINUS_DST_ALPHA;
-    case GL_SRC_ALPHA_SATURATE:     return BF_SRC_ALPHA_SATURATE;
-  }
-  return BF_ONE;
-}
-
-//------------------------------------------------------------------------------
-GLenum BLEND_EQToGL(BLEND_EQ func) 
-{
-  switch (func) 
-  {
-    case BE_FUNC_ADD:               return GL_FUNC_ADD;
-    case BE_FUNC_SUBTRACT:          return GL_FUNC_SUBTRACT;
-    case BE_FUNC_REVERSE_SUBTRACT:  return GL_FUNC_REVERSE_SUBTRACT;
-#ifdef SPIRE_OPENGL_ES_2
-    case BE_MIN:                    Log::error() << "GL_MIN not supported in ES 2.0" << std::endl; break;
-    case BE_MAX:                    Log::error() << "GL_MAX not supported in ES 2.0" << std::endl; break;
-#else
-    case BE_MIN:                    return GL_MIN;
-    case BE_MAX:                    return GL_MAX;
-#endif
-  }
-  return GL_FUNC_ADD;
-}
-
-//------------------------------------------------------------------------------
-BLEND_EQ GLToBLEND_EQ(const GLenum& func) 
-{
-  switch (func) 
-  {
-    case GL_FUNC_ADD:               return BE_FUNC_ADD;
-    case GL_FUNC_SUBTRACT:          return BE_FUNC_SUBTRACT;
-    case GL_FUNC_REVERSE_SUBTRACT:  return BE_FUNC_REVERSE_SUBTRACT;
-#ifndef SPIRE_OPENGL_ES_2
-    case GL_MIN:                    return BE_MIN;
-    case GL_MAX:                    return BE_MAX;
-#endif
-  }
-  return BE_FUNC_ADD;
-}
-
-//------------------------------------------------------------------------------
-GLenum DEPTH_FUNCToGL(const DEPTH_FUNC& func) 
-{
-  switch (func) 
-  {
-    case DF_NEVER:                  return GL_NEVER;
-    case DF_LESS:                   return GL_LESS;
-    case DF_EQUAL:                  return GL_EQUAL;
-    case DF_LEQUAL:                 return GL_LEQUAL;
-    case DF_GREATER:                return GL_GREATER;
-    case DF_NOTEQUAL:               return GL_NOTEQUAL;
-    case DF_GEQUAL:                 return GL_GEQUAL;
-    case DF_ALWAYS:                 return GL_ALWAYS;
-  }
-  return GL_LEQUAL;
-}
-
-//------------------------------------------------------------------------------
-DEPTH_FUNC GLToDEPTH_FUNC(const GLenum& func) 
-{
-  switch (func) 
-  {
-    case GL_NEVER:                  return DF_NEVER;
-    case GL_LESS:                   return DF_LESS;
-    case GL_EQUAL:                  return DF_EQUAL;
-    case GL_LEQUAL:                 return DF_LEQUAL;
-    case GL_GREATER:                return DF_GREATER;
-    case GL_NOTEQUAL:               return DF_NOTEQUAL;
-    case GL_GEQUAL:                 return DF_GEQUAL;
-    case GL_ALWAYS:                 return DF_ALWAYS;
-  }
-  return DF_LEQUAL;
-}
-
-
-//------------------------------------------------------------------------------
-GPUStateManager::GPUStateManager()
+GLState::GLState()
 {
 }
 
 //------------------------------------------------------------------------------
-GPUStateManager::~GPUStateManager()
+GLState::~GLState()
 {
 }
 
 //------------------------------------------------------------------------------
-size_t GPUStateManager::getMaxTextureUnits() const
+size_t GLState::getMaxTextureUnits() const
 {
   GLint tmp;
-#ifdef SPIRE_OPENGL_ES_2
+#ifdef CPM_GL_STATE_ES_2
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tmp);
 #else
   glGetIntegerv(GL_MAX_TEXTURE_UNITS, &tmp);
@@ -162,8 +27,22 @@ size_t GPUStateManager::getMaxTextureUnits() const
   return static_cast<size_t>(tmp);
 }
 
+
 //------------------------------------------------------------------------------
-void GPUStateManager::apply(const GPUState& state, bool force)
+void GLState::apply() const
+{
+  // Directly apply entire OpenGL state.
+  apply(this);
+}
+
+//------------------------------------------------------------------------------
+void GLState::applyRelative(const GLState& state) const
+{
+  
+}
+
+//------------------------------------------------------------------------------
+void GLState::apply(const GPUState& state, bool force)
 {
   GL_CHECK();
 
@@ -187,7 +66,7 @@ void GPUStateManager::apply(const GPUState& state, bool force)
       mInternalState.mTexEnable[i] = state.mTexEnable[i];
       switch (mInternalState.mTexEnable[i])
       {
-#ifdef SPIRE_OPENGL_ES_2
+#ifdef CPM_GL_STATE_ES_2
         case TEX_1D:      Log::error() << "1D textures not supported in ES 2.0" << std::endl;
                           glDisable(GL_TEXTURE_2D);
                           glDisable(GL_TEXTURE_CUBE_MAP);
@@ -239,7 +118,7 @@ void GPUStateManager::apply(const GPUState& state, bool force)
 }
 
 //------------------------------------------------------------------------------
-GPUState GPUStateManager::getStateFromOpenGL() const
+GPUState GLState::getStateFromOpenGL() const
 {
   GL_CHECK();
 
@@ -263,7 +142,7 @@ GPUState GPUStateManager::getStateFromOpenGL() const
   for(size_t i=0; i < getMaxTextureUnits(); ++i)
   {
     glActiveTexture(GL_TEXTURE0 + GLenum(i));
-#ifdef SPIRE_OPENGL_ES_2
+#ifdef CPM_GL_STATE_ES_2
     if (glIsEnabled(GL_TEXTURE_2D))
     {
       state.mTexEnable[i] = TEX_2D;
@@ -300,7 +179,7 @@ GPUState GPUStateManager::getStateFromOpenGL() const
   state.mColorMask = col[0] != 0;  
 
   GLint src, dest;
-#ifdef SPIRE_OPENGL_ES_2
+#ifdef CPM_GL_STATE_ES_2
   //GL_BLEND_DST_RGB and GL_BLEND_DST_ALPHA
   glGetIntegerv(GL_BLEND_SRC_RGB, &src);
   glGetIntegerv(GL_BLEND_DST_RGB, &dest);
@@ -318,55 +197,9 @@ GPUState GPUStateManager::getStateFromOpenGL() const
   return state;
 }
 
-//------------------------------------------------------------------------------
-void GPUStateManager::setBlendEquation(BLEND_EQ value, bool force)
-{
-  if (force || value != mInternalState.mBlendEquation)
-  {
-    mInternalState.mBlendEquation = value;
-    GL(glBlendEquation(BLEND_EQToGL(mInternalState.mBlendEquation)));
-  }
-}
 
 //------------------------------------------------------------------------------
-void GPUStateManager::setBlendFunction(BLEND_FUNC src, BLEND_FUNC dest, 
-                                       bool force)
-{
-  if (   force 
-      || src != mInternalState.mBlendFuncSrc 
-      || dest != mInternalState.mBlendFuncDst)
-  {
-    mInternalState.mBlendFuncSrc = src;
-    mInternalState.mBlendFuncDst = dest;
-    GL(glBlendFunc( BLEND_FUNCToGL(mInternalState.mBlendFuncSrc), 
-                   BLEND_FUNCToGL(mInternalState.mBlendFuncDst) ));
-  }
-}
-
-//------------------------------------------------------------------------------
-void GPUStateManager::setColorMask(bool mask, bool force)
-{
-  if (force || mask != mInternalState.mColorMask)
-  {
-    mInternalState.mColorMask = mask;
-    GLboolean b = mInternalState.mColorMask ? 1 : 0;
-    GL(glColorMask(b,b,b,b));
-  }
-}
-
-
-//------------------------------------------------------------------------------
-void GLState::setDepthMask(bool value, bool force)
-{
-  if (force || value != mInternalState.mDepthMask)
-  {
-    mInternalState.mDepthMask = value;
-    GL(glDepthMask(mInternalState.mDepthMask ? 1 : 0));
-  }
-}
-
-//------------------------------------------------------------------------------
-void GPUStateManager::applyDepthTestEnable(bool force, GLState* cur)
+void GLState::applyDepthTestEnable(bool force, GLState* cur)
 {
   if (force || (cur && cur->mDepthTestEnable != mDepthTestEnable))
   {
@@ -379,7 +212,7 @@ void GPUStateManager::applyDepthTestEnable(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GPUStateManager::applyDepthFunc(bool force, GLState* cur)
+void GLState::applyDepthFunc(bool force, GLState* cur)
 {
   if (force || (cur && cur->mDepthFunc != mDepthFunc))
   {
@@ -399,7 +232,7 @@ void GLState::applyCullFace(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GPUStateManager::applyCullFaceEnable(bool force, GLState* cur)
+void GLState::applyCullFaceEnable(bool force, GLState* cur)
 {
   if (force || (cur && cur->mCullFaceEnable != mCullFaceEnable))
   {
@@ -415,7 +248,10 @@ void GPUStateManager::applyCullFaceEnable(bool force, GLState* cur)
 void GLState::applyFrontFace(bool force, GLState* cur)
 {
   if (force || (cur && cur->mCullFrontFace != mCullFrontFace))
+  {
+    if (cur) cur->mCullFrontFace = mCullFrontFace;
     GL(glFrontFace(mCullFrontFace));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -423,6 +259,7 @@ void GLState::applyBlendEnable(bool force, GLState* cur)
 {
   if (force || (cur && cur->mBlendEnable != mBlendEnable))
   {
+    if (cur) cur->mBlendEnable = mBlendEnable;
     if (mBlendEnable)
       GL(glEnable(GL_BLEND));
     else
@@ -430,29 +267,98 @@ void GLState::applyBlendEnable(bool force, GLState* cur)
   }
 }
 
-
 //------------------------------------------------------------------------------
-void GPUStateManager::setLineWidth(float width, bool force)
+void GLState::applyBlendEquation(bool force, GLState* cur)
 {
-  if (force || width != mInternalState.mLineWidth)
+  if (force || (cur && cur->mBlendEquation != mBlendEquation))
   {
-    // Supported in GLES?
-    mInternalState.mLineWidth = width;
-    GL(glLineWidth(width));
+    if (cur) cur->mBlendEquation = mBlendEquation;
+    GL(glBlendEquation(mBlendEquation));
   }
 }
 
 //------------------------------------------------------------------------------
-void GPUStateManager::setLineSmoothingEnable(bool value, bool force)
+void GLState::applyBlendFunction(bool force, GLState* cur)
 {
-  if (force || value != mInternalState.mLineSmoothing)
+  if (   force
+      || (cur && cur->mBlendFuncSrc != mBlendFuncSrc)
+      || (cur && cur->mBlendFuncDst != mBlendFuncDst))
   {
-    mInternalState.mLineSmoothing = value;
+    if (cur)
+    {
+      cur->mBlendFuncSrc = mBlendFuncSrc;
+      cur->mBlendFuncDst = mBlendFuncDst;
+    }
+    GL(glBlendFunc(mBlendFuncSrc, mBlendFuncDst));
+  }
+}
+
+//------------------------------------------------------------------------------
+void GLState::applyDepthMask(bool force, GLState* cur)
+{
+  if (force || (cur && cur->mDepthMask != mDepthMask))
+  {
+    if (cur) cur->mDepthMask = mDepthMask;
+    GL(glDepthMask(mInternalState.mDepthMask ? 1 : 0));
+  }
+}
+
+//------------------------------------------------------------------------------
+void GPUStateManager::applyLineWidth(bool force, GLState* curState)
+{
+  if (force || (cur && cur->mLineWidth != mLineWidth))
+  {
+    if (cur) cur->mLineWidth = mLineWidth;
+    GL(glLineWidth(mLineWidth));
+  }
+}
+
+
+//------------------------------------------------------------------------------
+void GLState::applyColorMask(bool force, GLState* cur)
+{
+  if (   force 
+      || (cur && cur->mColorMaskRed != mColorMaskRed)
+      || (cur && cur->mColorMaskGreen != mColorMaskGreen)
+      || (cur && cur->mColorMaskBlue != mColorMaskBlue)
+      || (cur && cur->mColorMaskAlpha != mColorMaskAlpha))
+  {
+    if (cur)
+    {
+      cur->mColorMaskRed   = mColorMaskRed;
+      cur->mColorMaskGreen = mColorMaskGreen;
+      cur->mColorMaskBlue  = mColorMaskBlue;
+      cur->mColorMaskAlpha = mColorMaskAlpha;
+    }
+    GL(glColorMask(mColorMaskRed, mColorMaskGreen, mColorMaskBlue, mColorMaskAlpha));
+  }
+}
+
+//------------------------------------------------------------------------------
+void GLState::setColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
+{
+  mColorMaskRed   = red;
+  mColorMaskGreen = green;
+  mColorMaskBlue  = blue;
+  mColorMaskAlpha = alpha;
+}
+
+//------------------------------------------------------------------------------
+std::tuple<GLboolean, GLboolean, GLboolean, GLboolean> GLState::getColorMask()
+{
+  return std::make_tuple(mColorMaskRed, mColorMaskGreen, mColorMaskBlue, mColorMaskAlpha);
+}
+
+//------------------------------------------------------------------------------
+void GLState::applyLineWidth(bool force, GLState* curState)
+{
+  if (force || (cur && cur->mLineSmoothing != mLineSmoothing))
+  {
+    if (cur) cur->mLineSmoothing = mLineSmoothing;
+
     // Line smoothing not supported in OpenGL ES.
-    // No warning is given because this is set by default at program
-    // initialization to a known value.
-#ifndef SPIRE_OPENGL_ES_2
-    if (mInternalState.mLineSmoothing)
+#ifndef CPM_GL_STATE_ES_2
+    if (mLineSmoothing)
     {
       GL(glEnable(GL_LINE_SMOOTH));
     }
@@ -466,4 +372,3 @@ void GPUStateManager::setLineSmoothingEnable(bool value, bool force)
 
 } // namespace CPM_GL_STATE_NS 
 
-    if (cur) cur->mDepthTestEnable = mDepthTestEnable;
