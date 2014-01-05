@@ -14,29 +14,35 @@ namespace CPM_GL_STATE_NS {
 #endif
 
 class GLState
-{
+
 public:
 
   GLState() :
       mDepthTestEnable(true),
       mDepthFunc(DF_LESS),
       mCullFaceEnable(false),
-      mCullState(CULL_BACK),
-      mCullOrder(ORDER_CCW),
+      mCullFace(GL_BACK),
+      mCullFrontFace(GL_CCW),
       mBlendEnable(true),
-      mBlendEquation(BE_FUNC_ADD),
-      mBlendFuncSrc(BF_SRC_ALPHA),
-      mBlendFuncDst(BF_ONE_MINUS_SRC_ALPHA),
-      mDepthMask(true),
-      mColorMask(true),
+      mBlendEquation(GL_FUNC_ADD),
+      mBlendFuncSrc(GL_SRC_ALPHA),
+      mBlendFuncDst(GL_ONE_MINUS_SRC_ALPHA),
+      mDepthMask(GL_TRUE),
+      mColorMaskRed(GL_TRUE),
+      mColorMaskGreen(GL_TRUE),
+      mColorMaskBlue(GL_TRUE),
+      mColorMaskAlpha(GL_TRUE),
       mLineWidth(2.0f),
       mLineSmoothing(false),
-      mTexActiveUnit(0)
+      mTexActiveUnit(GL_TEXTURE0)
   {}
 
   // Use default copy constructor, we are safe directly copying array.
 
-  ~GPUState() {}
+  ~GLState() {}
+
+  /// String representation of entire GLState. String includes '\n' chars.
+  std::string getStateDescription();
 
   /// Applies OpenGL state immediately. It does not check the current OpenGL
   /// state, or any other GLState. It applies the entire GLState blindly.
@@ -54,7 +60,13 @@ public:
 
   /// Reads OpenGL state from OpenGL and updates all appropriate class
   /// variables. This modifies the entire state.
+  /// This call will internally change the active texture unit with
+  /// glActiveTexture, but will switch back to the last active state
+  /// before returning.
   void readStateFromOpenGL();
+
+  /// This reads state from OpenGL, only call when a context is active.
+  size_t getMaxTextureUnits() const;
 
   /// Functions for getting/setting specific OpenGL states.
   /// The apply... family of functions all have the same parameters:
@@ -111,8 +123,8 @@ public:
   /// OpenGL: glBlendEquation(value)
   /// Example values: GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT,
   ///                 GL_MIN (no ES 2.0), GL_MAX (no ES 2.0).
-  void    setBlendEquation(GLenum value);
-  GLenum  getBlendEquation();
+  void    setBlendEquation(GLenum value)  {mBlendEquation = value;}
+  GLenum  getBlendEquation()              {return mBlendEquation;}
   void    applyBlendEquation(bool force, GLState* curState = nullptr);
 
   /// Set blending function
@@ -123,7 +135,7 @@ public:
   ///                 GL_SRC_ALPHA_SATURATE.
   void    setBlendFunction(GLenum src, GLenum dest) {mBlendFuncSrc = src; mBlendFuncDst = dest;}
   std::pair<GLenum, GLenum> getBlendFunction()      {return std::make_pair(mBlendFuncSrc, mBlendFuncDst);}
-  void    applyBlendEquation(bool force, GLState* curState = nullptr);
+  void    applyBlendFunction(bool force, GLState* curState = nullptr);
 
   /// Set depth mask
   /// OpenGL: glDepthMask(value)
@@ -144,15 +156,26 @@ public:
   void    applyLineWidth(bool force, GLState* curState = nullptr);
 
   /// Set line smoothing.
-  /// OpenGL: GL(glEnable(GL_LINE_SMOOTH));
+  /// OpenGL: glEnable(GL_LINE_SMOOTH)
   /// NOTE: Not supported in OpenGL ES.
   void    setLineSmoothingEnable(bool value)  {mLineSmoothing = value;}
   bool    getLineSmoothingEnable()            {return mLineSmoothing;}
   void    applyLineWidth(bool force, GLState* curState = nullptr);
+
+  /// Enables 1D textures
+  /// OpenGL: glEnable(GL_TEXTURE_1D)
+  /// NOTE: Not supported in OpenGL ES.
+  void      setTexture1D(size_t index, GLboolean value);
+  GLboolean getTexture1D(size_t index);
+  void      applyTexture1D(size_t index, bool force, GLState* curState = nullptr);
+
+  /// Set active texture unit.
+  /// OpenGL: glActiveTexture(value)
+  void    setActiveTexture(GLenum value)      {mTexActiveUnit = value;}
+  GLenum  getActiveTexture()                  {return mTexActiveUnit;}
+  void    applyActiveTexture(bool force, GLState* curState = nullptr);
   /// @}
 
-  /// This reads state from OpenGL, only call when a context is active.
-  size_t getMaxTextureUnits() const;
 
   bool        mDepthTestEnable;
   GLenum      mDepthFunc;
@@ -176,21 +199,21 @@ public:
   float       mLineWidth;       ///< glLineWidth(...)
   bool        mLineSmoothing;   ///< GL_LINE_SMOOTH - Anti-aliasing for lines
 
-  size_t      mTexActiveUnit;
+  GLenum      mTexActiveUnit;   ///< Active texture unit.
 
   struct TextureState
   {
     TextureState()
     {
-      tex1D = false;
-      tex2D = false;
-      tex3D = false;
-      cubeMap = false;
+      tex1D   = GL_FALSE;
+      tex2D   = GL_FALSE;
+      tex3D   = GL_FALSE;
+      cubeMap = GL_FALSE;
     }
-    bool tex1D;   // glEnable(GL_TEXTURE_1D)
-    bool tex2D;   // glEnable(GL_TEXTURE_2D)
-    bool tex3D;   // glEnable(GL_TEXTURE_3D)
-    bool cubeMap; // glEnable(GL_TEXTURE_CUBE_MAP)
+    GLboolean tex1D;   // glEnable(GL_TEXTURE_1D)
+    GLboolean tex2D;   // glEnable(GL_TEXTURE_2D)
+    GLboolean tex3D;   // glEnable(GL_TEXTURE_3D)
+    GLboolean cubeMap; // glEnable(GL_TEXTURE_CUBE_MAP)
   };
 
   TextureState   mTextureState[CPM_GL_STATE_MAX_TEXTURE_UNITS];

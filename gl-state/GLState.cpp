@@ -27,12 +27,37 @@ size_t GLState::getMaxTextureUnits() const
   return static_cast<size_t>(tmp);
 }
 
+//------------------------------------------------------------------------------
+std::string GLState::getStateDescription()
+{
+  // Textual description of state.
+}
 
 //------------------------------------------------------------------------------
 void GLState::apply() const
 {
   // Directly apply entire OpenGL state.
-  apply(this);
+  applyDepthTestEnable(true);
+  applyDepthFunc(true);
+  applyCullFace(true);
+  applyCullFaceEnable(true);
+  applyFrontFace(true);
+  applyBlendEnable(true);
+  applyBlendEquation(true);
+  applyBlendFunction(true);
+  applyDepthMask(true);
+  applyColorMask(true);
+  applyLineWidth(true);
+  applyLineWidth(true);
+
+  // Apply all texture states.
+  for (size_t i = 0; i < getMaxTextureUnits();  i++) 
+  {
+    glActiveTexture(GLenum(GL_TEXTURE0 + i));
+
+  }
+
+  applyActiveTexture(true);
 }
 
 //------------------------------------------------------------------------------
@@ -118,83 +143,66 @@ void GLState::apply(const GPUState& state, bool force)
 }
 
 //------------------------------------------------------------------------------
-GPUState GLState::getStateFromOpenGL() const
+void GLState::readStateFromOpenGL()
 {
   GL_CHECK();
 
-  GPUState state;
-
   GLint e;
   glGetIntegerv(GL_DEPTH_FUNC, &e);
-  state.mDepthTestEnable              = glIsEnabled(GL_DEPTH_TEST) != 0;
-  state.mDepthFunc                    = GLToDEPTH_FUNC(static_cast<GLenum>(e));
+  mDepthTestEnable   = glIsEnabled(GL_DEPTH_TEST) != 0;
+  mDepthFunc         = static_cast<GLenum>(e);
 
-  state.mCullFaceEnable               = glIsEnabled(GL_CULL_FACE) != 0;
+  mCullFaceEnable    = glIsEnabled(GL_CULL_FACE) != 0;
 
   glGetIntegerv(GL_CULL_FACE_MODE, &e);
-  state.mCullState                    = (e == GL_FRONT) ? CULL_FRONT : CULL_BACK;
+  mCullFace           = static_cast<GLenum>(e);
 
-  state.mBlendEnable                  = glIsEnabled(GL_BLEND) != 0;
+  mBlendEnable = glIsEnabled(GL_BLEND) != 0;
 
   glGetIntegerv(GL_FRONT_FACE, &e);
-  state.mCullOrder                    = GLToCULL_ORDER(static_cast<GLenum>(e));
+  mCullOrder                    = GLToCULL_ORDER(static_cast<GLenum>(e));
 
-  for(size_t i=0; i < getMaxTextureUnits(); ++i)
+  glGetIntegerv(GL_ACTIVE_TEXTURE, &e);
+  mTexActiveUnit = e;
+
+  for (size_t i = 0; i < getMaxTextureUnits(); ++i)
   {
-    glActiveTexture(GL_TEXTURE0 + GLenum(i));
-#ifdef CPM_GL_STATE_ES_2
-    if (glIsEnabled(GL_TEXTURE_2D))
-    {
-      state.mTexEnable[i] = TEX_2D;
-    }
-    else
-    {
-      state.mTexEnable[i] = TEX_NONE;
-    }
-#else
-    if (glIsEnabled(GL_TEXTURE_3D))
-    {
-      state.mTexEnable[i] = TEX_3D;
-    }
-    else if (glIsEnabled(GL_TEXTURE_2D))
-    {
-      state.mTexEnable[i] = TEX_2D;
-    }
-    else if (glIsEnabled(GL_TEXTURE_1D))
-    {
-      state.mTexEnable[i] = TEX_1D;
-    }
-    else 
-    {
-      state.mTexEnable[i] = TEX_NONE;
-    }
+    glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(i));
+    mTextureState.tex2D   = glIsEnabled(GL_TEXTURE_2D);
+    mTextureState.cubeMap = glIsEnabled(GL_TEXTURE_CUBE_MAP);
+#ifndef CPM_GL_STATE_ES_2
+    mTextureState.tex1D   = glIsEnabled(GL_TEXTURE_1D);
+    mTextureState.tex2D   = glIsEnabled(GL_TEXTURE_3D);
 #endif
   }
-  GLboolean	 b;
+
+  // Reset the active texture unit to what it was prior.
+  glActiveTexture(mTexActiveUnit);
+
+  GLboolean	b;
   glGetBooleanv(GL_DEPTH_WRITEMASK, &b);
-  state.mDepthMask = b != 0;
+  mDepthMask = (b != 0);
 
   GLboolean	 col[4];
   glGetBooleanv(GL_COLOR_WRITEMASK, col);
-  state.mColorMask = col[0] != 0;  
+  mColorMaskRed   = col[0];
+  mColorMaskGreen = col[1];
+  mColorMaskBlue  = col[2];
+  mColorMaskAlpha = col[3];
 
   GLint src, dest;
 #ifdef CPM_GL_STATE_ES_2
-  //GL_BLEND_DST_RGB and GL_BLEND_DST_ALPHA
   glGetIntegerv(GL_BLEND_SRC_RGB, &src);
   glGetIntegerv(GL_BLEND_DST_RGB, &dest);
 #else
   glGetIntegerv(GL_BLEND_SRC, &src);
   glGetIntegerv(GL_BLEND_DST, &dest);
 #endif
-  state.mBlendFuncSrc = GLToBLEND_FUNC(static_cast<GLenum>(src));
-  state.mBlendFuncDst = GLToBLEND_FUNC(static_cast<GLenum>(dest));
+  mBlendFuncSrc = static_cast<GLenum>(src);
+  mBlendFuncDst = static_cast<GLenum>(dest);
 
-  GLint equation;
-  GL(glGetIntegerv(GL_BLEND_EQUATION_RGB, &equation));
-  state.mBlendEquation = GLToBLEND_EQ(static_cast<GLenum>(equation));
-
-  return state;
+  GL(glGetIntegerv(GL_BLEND_EQUATION_RGB, &e));
+  mBlendEquation = static_cast<GLenum>(e);
 }
 
 
@@ -224,10 +232,10 @@ void GLState::applyDepthFunc(bool force, GLState* cur)
 //------------------------------------------------------------------------------
 void GLState::applyCullFace(bool force, GLState* cur)
 {
-  if (force || (cur && cur->mCullState != mCullState))
+  if (force || (cur && cur->mCullFace != mCullFace))
   {
-    if (cur) cur->mCullState = mCullState;
-    GL(glCullFace(mCullState));
+    if (cur) cur->mCullFace = mCullFace;
+    GL(glCullFace(mCullFace));
   }
 }
 
@@ -304,7 +312,7 @@ void GLState::applyDepthMask(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GPUStateManager::applyLineWidth(bool force, GLState* curState)
+void GPUStateManager::applyLineWidth(bool force, GLState* cur)
 {
   if (force || (cur && cur->mLineWidth != mLineWidth))
   {
@@ -350,7 +358,7 @@ std::tuple<GLboolean, GLboolean, GLboolean, GLboolean> GLState::getColorMask()
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyLineWidth(bool force, GLState* curState)
+void GLState::applyLineWidth(bool force, GLState* cur)
 {
   if (force || (cur && cur->mLineSmoothing != mLineSmoothing))
   {
@@ -369,6 +377,47 @@ void GLState::applyLineWidth(bool force, GLState* curState)
 #endif
   }
 }
+
+//------------------------------------------------------------------------------
+void GLState::setTexture1D(size_t index, GLboolean value)
+{
+  if (index >= CPM_GL_STATE_MAX_TEXTURE_UNITS)
+    throw std::runtime_error("setTexture1D - index above CPM_GL_STATE_MAX_TEXTURE_UNITS.");
+
+  mTextureState[index].tex1D = value;
+}
+
+//------------------------------------------------------------------------------
+GLboolean GLState::getTexture1D(size_t index)
+{
+  if (index >= CPM_GL_STATE_MAX_TEXTURE_UNITS)
+    throw std::runtime_error("getTexture1D - index above CPM_GL_STATE_MAX_TEXTURE_UNITS.");
+
+  return mTextureState[index].tex1D;
+}
+
+//------------------------------------------------------------------------------
+void GLState::applyTexture1D(size_t index, bool force, GLState* curState)
+{
+  if (index >= CPM_GL_STATE_MAX_TEXTURE_UNITS)
+    throw std::runtime_error("applyTexture1D - index above CPM_GL_STATE_MAX_TEXTURE_UNITS.");
+
+  if (force || (cur && cur->mTextureState[index].tex1D != mTextureState[index].tex1D))
+  {
+    if (cur) cur->mTextureState[index].tex1D = mTextureState[index].tex1D;
+  }
+}
+
+//------------------------------------------------------------------------------
+void GLState::applyActiveTexture(bool force, GLState* cur)
+{
+  if (force || (cur && cur->mTexActiveUnit!= mTexActiveUnit))
+  {
+    if (cur) cur->mTexActiveUnit = mTexActiveUnit;
+    glActiveTexture(mTexActiveUnit);
+  }
+}
+
 
 } // namespace CPM_GL_STATE_NS 
 
