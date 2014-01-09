@@ -9,37 +9,26 @@
 
 namespace CPM_GL_STATE_NS {
 
-#ifndef CPM_GL_STATE_MAX_TEXTURE_UNITS
-#define CPM_GL_STATE_MAX_TEXTURE_UNITS 12
-#endif
+// Texture state is not managed. This GLState class is not for the fixed
+// function pipeline. See:
+// https://www.opengl.org/discussion_boards/showthread.php/163092-Passing-Multiple-Textures-from-OpenGL-to-GLSL-shader
+// You will 
 
 class GLState
 
 public:
 
-  GLState() :
-      mDepthTestEnable(true),
-      mDepthFunc(DF_LESS),
-      mCullFaceEnable(false),
-      mCullFace(GL_BACK),
-      mCullFrontFace(GL_CCW),
-      mBlendEnable(true),
-      mBlendEquation(GL_FUNC_ADD),
-      mBlendFuncSrc(GL_SRC_ALPHA),
-      mBlendFuncDst(GL_ONE_MINUS_SRC_ALPHA),
-      mDepthMask(GL_TRUE),
-      mColorMaskRed(GL_TRUE),
-      mColorMaskGreen(GL_TRUE),
-      mColorMaskBlue(GL_TRUE),
-      mColorMaskAlpha(GL_TRUE),
-      mLineWidth(2.0f),
-      mLineSmoothing(false),
-      mTexActiveUnit(GL_TEXTURE0)
-  {}
+  GLState();
 
-  // Use default copy constructor, we are safe directly copying array.
+  // Default destructor, copy, move, and assignment.
+  C(const C&)               = default;
+  C(C&&)                    = default;
+  C& operator=(const C&) &  = default;
+  C& operator=(C&&) &       = default;
+  virtual ~C()              = default;
 
-  ~GLState() {}
+  /// Equality operator.
+  bool operator==(const MyClass &other) const;
 
   /// String representation of entire GLState. String includes '\n' chars.
   std::string getStateDescription();
@@ -50,8 +39,9 @@ public:
   void apply() const;
 
   /// Applies this state relative to another GLState (state), which represents
-  /// the current OpenGL state.
-  void applyRelative(const GLState& state) const;
+  /// the current OpenGL state. \p state will be modified to suit the new GL
+  /// state.
+  void applyRelative(GLState& state) const;
 
   /// Attempts to detect errors in the OpenGL state (invalid state settings).
   /// Returns true if the state was verified, otherwise false is returned.
@@ -83,7 +73,7 @@ public:
   /// OpenGL: glEnable(GL_DEPTH_TEST) or glDisable(GL_DEPTH_TEST)
   void    setDepthTestEnable(bool value)  {mDepthTestEnable = value;}
   bool    getDepthTestEnable() const      {return mDepthTestEnable;}
-  void    applyDepthTestEnable(bool force, GLState* curState = nullptr);
+  void    applyDepthTestEnable(bool force, GLState* curState = nullptr) const;
 
   /// Enable depth function.
   /// OpenGL: glDepthFunc(value)
@@ -91,41 +81,41 @@ public:
   ///                 GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS.
   void    setDepthFunc(GLenum value)      {mDepthFunc = value;}
   GLenum  getDepthFunc() const            {return mDepthFunc;}
-  void    applyDepthFunc(bool force, GLState* curState = nullptr);
+  void    applyDepthFunc(bool force, GLState* curState = nullptr) const;
 
   /// Set culling state.
   /// OpenGL: glCullFace(value)
   /// Example values: GL_FRONT, GL_BACK.
   void    setCullFace(GLenum value) {mCullFace = value;}
-  GLenum  getCullFace()             {return mCullFace;}
-  void    applyCullFace(bool force, GLState* curState = nullptr);
+  GLenum  getCullFace() const       {return mCullFace;}
+  void    applyCullFace(bool force, GLState* curState = nullptr) const;
 
   /// Enable face culling.
   /// OpenGL: glEnable(GL_CULL_FACE) or glDisable(GL_CULL_FACE)
   void    setCullFaceEnable(bool value) {mCullFaceEnable = value;}
-  bool    getCullFaceEnable()           {return mCullFaceEnable;}
-  void    applyCullFaceEnable(bool force, GLState* curState = nullptr);
+  bool    getCullFaceEnable() const     {return mCullFaceEnable;}
+  void    applyCullFaceEnable(bool force, GLState* curState = nullptr) const;
 
   /// Set culling front face order.
   /// OpenGL: glFrontFace(value)
   /// Example values: GL_CCW, GL_CW.
   void    setFrontFace(GLenum value)  {mCullFrontFace = value}
-  GLenum  getFrontFace()              {return mCullFrontFace;}
-  void    applyFrontFace(bool force, GLState* curState = nullptr);
+  GLenum  getFrontFace() const        {return mCullFrontFace;}
+  void    applyFrontFace(bool force, GLState* curState = nullptr) const;
   
   /// Enable / disable blending.
   /// OpenGL: glEnable(GL_BLEND) or glDisable(GL_BLEND)
   void    setBlendEnable(bool value)   {mBlendEnable = value;}
-  bool    getBlendEnable()             {return mBlendEnable;}
-  void    applyBlendEnable(bool force, GLState* curState = nullptr);
+  bool    getBlendEnable() const       {return mBlendEnable;}
+  void    applyBlendEnable(bool force, GLState* curState = nullptr) const;
 
   /// Set the blending equation
   /// OpenGL: glBlendEquation(value)
   /// Example values: GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT,
   ///                 GL_MIN (no ES 2.0), GL_MAX (no ES 2.0).
   void    setBlendEquation(GLenum value)  {mBlendEquation = value;}
-  GLenum  getBlendEquation()              {return mBlendEquation;}
-  void    applyBlendEquation(bool force, GLState* curState = nullptr);
+  GLenum  getBlendEquation() const        {return mBlendEquation;}
+  void    applyBlendEquation(bool force, GLState* curState = nullptr) const;
 
   /// Set blending function
   /// OpenGL: glBlendFunc(src, dst)
@@ -133,49 +123,42 @@ public:
   ///                 GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA,
   ///                 GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
   ///                 GL_SRC_ALPHA_SATURATE.
-  void    setBlendFunction(GLenum src, GLenum dest) {mBlendFuncSrc = src; mBlendFuncDst = dest;}
-  std::pair<GLenum, GLenum> getBlendFunction()      {return std::make_pair(mBlendFuncSrc, mBlendFuncDst);}
-  void    applyBlendFunction(bool force, GLState* curState = nullptr);
+  void    setBlendFunction(GLenum src, GLenum dest)  {mBlendFuncSrc = src; mBlendFuncDst = dest;}
+  std::pair<GLenum, GLenum> getBlendFunction() const {return std::make_pair(mBlendFuncSrc, mBlendFuncDst);}
+  void    applyBlendFunction(bool force, GLState* curState = nullptr) const;
 
   /// Set depth mask
   /// OpenGL: glDepthMask(value)
   void    setDepthMask(GLboolean value)   {mDepthMask = value;}
-  GLboolean getDepthMask()                {return mDepthMask;}
-  void    applyDepthMask(bool force, GLState* curState = nullptr);
+  GLboolean getDepthMask() const          {return mDepthMask;}
+  void    applyDepthMask(bool force, GLState* curState = nullptr) const;
 
   /// Set color mask
   /// OpenGL: glColorMask(red, green, blue, alpha)
   void    setColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
-  std::tuple<GLboolean, GLboolean, GLboolean, GLboolean> getColorMask();
-  void    applyColorMask(bool force, GLState* curState = nullptr);
+  std::tuple<GLboolean, GLboolean, GLboolean, GLboolean> getColorMask() const;
+  void    applyColorMask(bool force, GLState* curState = nullptr) const;
 
   /// Set line width.
   /// OpenGL: glLineWidth()
   void    setLineWidth(float width) {mLineWidth = width;}
-  float   getLineWidth()            {return mLineWidth;}
-  void    applyLineWidth(bool force, GLState* curState = nullptr);
+  float   getLineWidth() const      {return mLineWidth;}
+  void    applyLineWidth(bool force, GLState* curState = nullptr) const;
 
   /// Set line smoothing.
-  /// OpenGL: glEnable(GL_LINE_SMOOTH)
+  /// OpenGL: glEnable(GL_LINE_SMOOTH) / glDisable(GL_LINE_SMOOTH)
   /// NOTE: Not supported in OpenGL ES.
   void    setLineSmoothingEnable(bool value)  {mLineSmoothing = value;}
-  bool    getLineSmoothingEnable()            {return mLineSmoothing;}
-  void    applyLineWidth(bool force, GLState* curState = nullptr);
-
-  /// Enables 1D textures
-  /// OpenGL: glEnable(GL_TEXTURE_1D)
-  /// NOTE: Not supported in OpenGL ES.
-  void      setTexture1D(size_t index, GLboolean value);
-  GLboolean getTexture1D(size_t index);
-  void      applyTexture1D(size_t index, bool force, GLState* curState = nullptr);
+  bool    getLineSmoothingEnable() const      {return mLineSmoothing;}
+  void    applyLineSmoothing(bool force, GLState* curState = nullptr) const;
 
   /// Set active texture unit.
   /// OpenGL: glActiveTexture(value)
+  /// Example values: GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, ...
   void    setActiveTexture(GLenum value)      {mTexActiveUnit = value;}
   GLenum  getActiveTexture()                  {return mTexActiveUnit;}
   void    applyActiveTexture(bool force, GLState* curState = nullptr);
   /// @}
-
 
   bool        mDepthTestEnable;
   GLenum      mDepthFunc;
@@ -201,22 +184,9 @@ public:
 
   GLenum      mTexActiveUnit;   ///< Active texture unit.
 
-  struct TextureState
-  {
-    TextureState()
-    {
-      tex1D   = GL_FALSE;
-      tex2D   = GL_FALSE;
-      tex3D   = GL_FALSE;
-      cubeMap = GL_FALSE;
-    }
-    GLboolean tex1D;   // glEnable(GL_TEXTURE_1D)
-    GLboolean tex2D;   // glEnable(GL_TEXTURE_2D)
-    GLboolean tex3D;   // glEnable(GL_TEXTURE_3D)
-    GLboolean cubeMap; // glEnable(GL_TEXTURE_CUBE_MAP)
-  };
+private:
 
-  TextureState   mTextureState[CPM_GL_STATE_MAX_TEXTURE_UNITS];
+  void applyStateInternal(bool force, GLState* state) const;
 };
 
 } // namespace CPM_GL_STATE_NS 
