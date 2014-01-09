@@ -7,7 +7,7 @@ namespace CPM_GL_STATE_NS {
 //------------------------------------------------------------------------------
 GLState::GLState() :
     mDepthTestEnable(true),
-    mDepthFunc(DF_LESS),
+    mDepthFunc(GL_LESS),
     mCullFace(GL_BACK),
     mCullFaceEnable(false),
     mCullFrontFace(GL_CCW),
@@ -22,8 +22,7 @@ GLState::GLState() :
     mColorMaskAlpha(GL_TRUE),
     mLineWidth(2.0f),
     mLineSmoothing(false),
-    mTexActiveUnit(GL_TEXTURE0),
-    mMaxTextureUnits(-1)
+    mTexActiveUnit(GL_TEXTURE0)
 {
 }
 
@@ -61,32 +60,21 @@ bool GLState::operator==(const GLState &o) const
 //------------------------------------------------------------------------------
 size_t GLState::getMaxTextureUnits() const
 {
-  if (mMaxTextureUnits != -1)
-  {
-    return mMaxTextureUnits;
-  }
-  else
-  {
-    GLint tmp;
+  GLint tmp;
 #ifdef CPM_GL_STATE_ES_2
-    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tmp);
+  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tmp);
 #else
-    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &tmp);
+  glGetIntegerv(GL_MAX_TEXTURE_UNITS, &tmp);
 #endif
 
-    // Clamp number of texture units if it goes above our support.
-    if (tmp > CPM_GL_STATE_MAX_TEXTURE_UNITS)
-      tmp = CPM_GL_STATE_MAX_TEXTURE_UNITS;
-
-    mMaxTextureUnits = tmp;
-    return static_cast<size_t>(mMaxTextureUnits);
-  }
+  return static_cast<size_t>(tmp);
 }
 
 //------------------------------------------------------------------------------
 std::string GLState::getStateDescription()
 {
   // Textual description of state.
+  return "";
 }
 
 //------------------------------------------------------------------------------
@@ -173,13 +161,14 @@ void GLState::readStateFromOpenGL()
   glGetBooleanv(GL_LINE_SMOOTH, &b);
   mLineSmoothing = b;
 
-  // Reset the active texture unit to what it was prior.
-  glActiveTexture(mTexActiveUnit);
+  // Active texture unit
+  glGetIntegerv(GL_ACTIVE_TEXTURE, &e);
+  mTexActiveUnit = e;
 }
 
 
 //------------------------------------------------------------------------------
-void GLState::applyDepthTestEnable(bool force, GLState* cur)
+void GLState::applyDepthTestEnable(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mDepthTestEnable != mDepthTestEnable))
   {
@@ -192,7 +181,7 @@ void GLState::applyDepthTestEnable(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyDepthFunc(bool force, GLState* cur)
+void GLState::applyDepthFunc(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mDepthFunc != mDepthFunc))
   {
@@ -202,7 +191,7 @@ void GLState::applyDepthFunc(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyCullFace(bool force, GLState* cur)
+void GLState::applyCullFace(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mCullFace != mCullFace))
   {
@@ -212,7 +201,7 @@ void GLState::applyCullFace(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyCullFaceEnable(bool force, GLState* cur)
+void GLState::applyCullFaceEnable(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mCullFaceEnable != mCullFaceEnable))
   {
@@ -225,7 +214,7 @@ void GLState::applyCullFaceEnable(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyFrontFace(bool force, GLState* cur)
+void GLState::applyFrontFace(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mCullFrontFace != mCullFrontFace))
   {
@@ -235,7 +224,7 @@ void GLState::applyFrontFace(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyBlendEnable(bool force, GLState* cur)
+void GLState::applyBlendEnable(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mBlendEnable != mBlendEnable))
   {
@@ -248,7 +237,7 @@ void GLState::applyBlendEnable(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyBlendEquation(bool force, GLState* cur)
+void GLState::applyBlendEquation(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mBlendEquation != mBlendEquation))
   {
@@ -258,7 +247,7 @@ void GLState::applyBlendEquation(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyBlendFunction(bool force, GLState* cur)
+void GLState::applyBlendFunction(bool force, GLState* cur) const
 {
   if (   force
       || (cur && cur->mBlendFuncSrc != mBlendFuncSrc)
@@ -274,17 +263,17 @@ void GLState::applyBlendFunction(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyDepthMask(bool force, GLState* cur)
+void GLState::applyDepthMask(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mDepthMask != mDepthMask))
   {
     if (cur) cur->mDepthMask = mDepthMask;
-    GL(glDepthMask(mInternalState.mDepthMask ? 1 : 0));
+    GL(glDepthMask(mDepthMask));
   }
 }
 
 //------------------------------------------------------------------------------
-void GPUStateManager::applyLineWidth(bool force, GLState* cur)
+void GLState::applyLineWidth(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mLineWidth != mLineWidth))
   {
@@ -295,7 +284,7 @@ void GPUStateManager::applyLineWidth(bool force, GLState* cur)
 
 
 //------------------------------------------------------------------------------
-void GLState::applyColorMask(bool force, GLState* cur)
+void GLState::applyColorMask(bool force, GLState* cur) const
 {
   if (   force 
       || (cur && cur->mColorMaskRed != mColorMaskRed)
@@ -324,13 +313,13 @@ void GLState::setColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboo
 }
 
 //------------------------------------------------------------------------------
-std::tuple<GLboolean, GLboolean, GLboolean, GLboolean> GLState::getColorMask()
+std::tuple<GLboolean, GLboolean, GLboolean, GLboolean> GLState::getColorMask() const
 {
   return std::make_tuple(mColorMaskRed, mColorMaskGreen, mColorMaskBlue, mColorMaskAlpha);
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyLineSmoothing(bool force, GLState* cur)
+void GLState::applyLineSmoothing(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mLineSmoothing != mLineSmoothing))
   {
@@ -351,7 +340,7 @@ void GLState::applyLineSmoothing(bool force, GLState* cur)
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyActiveTexture(bool force, GLState* cur)
+void GLState::applyActiveTexture(bool force, GLState* cur) const
 {
   if (force || (cur && cur->mTexActiveUnit!= mTexActiveUnit))
   {

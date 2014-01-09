@@ -15,20 +15,18 @@ namespace CPM_GL_STATE_NS {
 // You will 
 
 class GLState
-
+{
 public:
 
   GLState();
 
   // Default destructor, copy, move, and assignment.
-  C(const C&)               = default;
-  C(C&&)                    = default;
-  C& operator=(const C&) &  = default;
-  C& operator=(C&&) &       = default;
-  virtual ~C()              = default;
+  GLState(const GLState&)               = default;
+  GLState& operator=(const GLState&) &  = default;
+  virtual ~GLState()                    = default;
 
   /// Equality operator.
-  bool operator==(const MyClass &other) const;
+  bool operator==(const GLState &other) const;
 
   /// String representation of entire GLState. String includes '\n' chars.
   std::string getStateDescription();
@@ -99,7 +97,7 @@ public:
   /// Set culling front face order.
   /// OpenGL: glFrontFace(value)
   /// Example values: GL_CCW, GL_CW.
-  void    setFrontFace(GLenum value)  {mCullFrontFace = value}
+  void    setFrontFace(GLenum value)  {mCullFrontFace = value;}
   GLenum  getFrontFace() const        {return mCullFrontFace;}
   void    applyFrontFace(bool force, GLState* curState = nullptr) const;
   
@@ -157,7 +155,7 @@ public:
   /// Example values: GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, ...
   void    setActiveTexture(GLenum value)      {mTexActiveUnit = value;}
   GLenum  getActiveTexture()                  {return mTexActiveUnit;}
-  void    applyActiveTexture(bool force, GLState* curState = nullptr);
+  void    applyActiveTexture(bool force, GLState* curState = nullptr) const;
   /// @}
 
   bool        mDepthTestEnable;

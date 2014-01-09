@@ -55,27 +55,6 @@ CPM_AddModule("batch_testing"
 CPM_Finish()
 
 #-----------------------------------------------------------------------
-# Copy appropriate shaders and assets
-#-----------------------------------------------------------------------
-CPM_GetSourceDir(SPIRE_TESTING_SOURCE_DIR "batch_testing")
-
-# Copy shaders.
-file(COPY ${SPIRE_TESTING_SOURCE_DIR}/shaders/
-     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/shaders
-     FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-     DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                           GROUP_READ
-                           WORLD_READ WORLD_EXECUTE)
-
-# Exported meshes.
-file(COPY ${SPIRE_TESTING_SOURCE_DIR}/assets/
-     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets
-     FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-     DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                           GROUP_READ
-                           WORLD_READ WORLD_EXECUTE)
-
-#-----------------------------------------------------------------------
 # Configure OpenGL
 #-----------------------------------------------------------------------
 find_package(OpenGL REQUIRED)
@@ -87,23 +66,6 @@ find_package(OpenGL REQUIRED)
 if(APPLE)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wconversion -Wshadow")
 endif()
-
-#-----------------------------------------------------------------------
-# Regression directory setup
-#-----------------------------------------------------------------------
-
-set(REGRESSION_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/regression")
-CPM_EnsureRepoIsCurrent(
-  TARGET_DIR ${REGRESSION_DATA_DIR}
-  GIT_REPOSITORY "https://github.com/iauns-tests/cpm-arc-ball"
-  GIT_TAG "origin/master"
-  )
-
-add_definitions(-DTEST_OUTPUT_IMAGES)
-add_definitions(-DTEST_IMAGE_OUTPUT_DIR="${REGRESSION_DATA_DIR}/output")
-add_definitions(-DTEST_IMAGE_COMPARE_DIR="${REGRESSION_DATA_DIR}/verified")
-add_definitions(-DTEST_PERCEPTUAL_COMPARE)
-add_definitions(-DTEST_PERCEPTUAL_COMPARE_BINARY="perceptualdiff")
 
 #-----------------------------------------------------------------------
 # Setup source

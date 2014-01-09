@@ -7,8 +7,9 @@
 #include <gl-state/GLState.hpp>
 
 using namespace CPM_BATCH_TESTING_NS;
+using namespace CPM_GL_STATE_NS;
 
-TEST_F(TestStateSet, TestQuadRotation)
+TEST_F(SpireTestFixture, TestGLState)
 {
   // Current state.
   GLState defaultState;
@@ -34,7 +35,7 @@ TEST_F(TestStateSet, TestQuadRotation)
 
     // Attempt relative application.
     state.applyRelative(currentState);
-    testStateAgainstOpenGL(state);
+    if (!testStateAgainstOpenGL(state)) return false;
 
     // Reset to default state.
     defaultState.apply();
@@ -42,7 +43,9 @@ TEST_F(TestStateSet, TestQuadRotation)
 
     // Attempt direct application
     state.apply();
-    testStateAgainstOpenGL(state);
+    if (!testStateAgainstOpenGL(state)) return false;
+
+    return true;
   };
 
   // Test state changes by modifying the default state, the reading the
@@ -55,26 +58,26 @@ TEST_F(TestStateSet, TestQuadRotation)
   testState.setDepthTestEnable(true);
   EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
   testState.setDepthTestEnable(false);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(TestState));
+  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
 
   // Depth func
   testState = defaultState;
   testState.setDepthFunc(GL_NEVER);
   EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
   testState.setDepthTestEnable(GL_LESS);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(TestState));
+  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
   testState.setDepthTestEnable(GL_EQUAL);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(TestState));
+  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
   testState.setDepthTestEnable(GL_LEQUAL);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(TestState));
+  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
   testState.setDepthTestEnable(GL_GREATER);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(TestState));
+  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
   testState.setDepthTestEnable(GL_NOTEQUAL);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(TestState));
+  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
   testState.setDepthTestEnable(GL_GEQUAL);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(TestState));
+  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
   testState.setDepthTestEnable(GL_ALWAYS);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(TestState));
+  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
 
   // Cull face
   testState = defaultState;
@@ -119,17 +122,17 @@ TEST_F(TestStateSet, TestQuadRotation)
 
   // Set blending function (only testing subset)
   testState = defaultState;
-  testState.setBlendEquation(GL_ZERO, GL_ZERO);
+  testState.setBlendFunction(GL_ZERO, GL_ZERO);
   EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
-  testState.setBlendEquation(GL_ONE, GL_ZERO);
+  testState.setBlendFunction(GL_ONE, GL_ZERO);
   EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
-  testState.setBlendEquation(GL_ZERO, GL_ONE);
+  testState.setBlendFunction(GL_ZERO, GL_ONE);
   EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
-  testState.setBlendEquation(GL_ONE, GL_ONE);
+  testState.setBlendFunction(GL_ONE, GL_ONE);
   EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
-  testState.setBlendEquation(GL_SRC_COLOR, GL_SRC_ALPHA);
+  testState.setBlendFunction(GL_SRC_COLOR, GL_SRC_ALPHA);
   EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
-  testState.setBlendEquation(GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA);
+  testState.setBlendFunction(GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA);
   EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
 
   // Set depth mask
