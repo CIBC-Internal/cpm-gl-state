@@ -5,6 +5,7 @@
 /// \todo Handle state relative to some default state?
 
 #include <cstddef>
+#include <tuple>
 #include <gl-platform/GLPlatform.hpp>
 
 namespace CPM_GL_STATE_NS {
