@@ -35,7 +35,7 @@ endif()
 # ++ MODULE: GL Platform
 CPM_AddModule("gl_platform"
   GIT_REPOSITORY "https://github.com/iauns/cpm-gl-platform.git"
-  GIT_TAG "1.3.5"
+  GIT_TAG "1.3.6"
   EXPORT_MODULE TRUE
   USE_EXISTING_VER TRUE)
 
@@ -60,6 +60,5 @@ file (GLOB Sources
 
 # Build the library.
 add_library(${CPM_LIB_TARGET_NAME} ${Sources})
-target_link_libraries(${CPM_LIB_TARGET_NAME} ${CPM_LIBRARIES})
 
 
