@@ -21,11 +21,6 @@ public:
 
   GLState();
 
-  // Default destructor, copy, move, and assignment.
-  GLState(const GLState&)               = default;
-  GLState& operator=(const GLState&) &  = default;
-  virtual ~GLState()                    = default;
-
   /// Equality operator.
   bool operator==(const GLState &other) const;
 
