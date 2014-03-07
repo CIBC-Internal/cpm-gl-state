@@ -84,13 +84,13 @@ void GLState::apply() const
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyRelative(GLState& state) const
+void GLState::applyRelative(const GLState& state) const
 {
   applyStateInternal(false, &state);
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyStateInternal(bool force, GLState* state) const
+void GLState::applyStateInternal(bool force, const GLState* state) const
 {
   // Directly apply entire OpenGL state.
   applyDepthTestEnable(force, state);
@@ -168,11 +168,10 @@ void GLState::readStateFromOpenGL()
 
 
 //------------------------------------------------------------------------------
-void GLState::applyDepthTestEnable(bool force, GLState* cur) const
+void GLState::applyDepthTestEnable(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mDepthTestEnable != mDepthTestEnable))
   {
-    if (cur) cur->mDepthTestEnable = mDepthTestEnable;
     if (mDepthTestEnable)
       GL(glEnable(GL_DEPTH_TEST));
     else
@@ -181,31 +180,28 @@ void GLState::applyDepthTestEnable(bool force, GLState* cur) const
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyDepthFunc(bool force, GLState* cur) const
+void GLState::applyDepthFunc(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mDepthFunc != mDepthFunc))
   {
-    if (cur) cur->mDepthFunc = mDepthFunc;
     GL(glDepthFunc(mDepthFunc));
   }
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyCullFace(bool force, GLState* cur) const
+void GLState::applyCullFace(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mCullFace != mCullFace))
   {
-    if (cur) cur->mCullFace = mCullFace;
     GL(glCullFace(mCullFace));
   }
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyCullFaceEnable(bool force, GLState* cur) const
+void GLState::applyCullFaceEnable(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mCullFaceEnable != mCullFaceEnable))
   {
-    if (cur) cur->mCullFaceEnable = mCullFaceEnable;
     if (mCullFaceEnable)
       GL(glEnable(GL_CULL_FACE));
     else
@@ -214,21 +210,19 @@ void GLState::applyCullFaceEnable(bool force, GLState* cur) const
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyFrontFace(bool force, GLState* cur) const
+void GLState::applyFrontFace(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mCullFrontFace != mCullFrontFace))
   {
-    if (cur) cur->mCullFrontFace = mCullFrontFace;
     GL(glFrontFace(mCullFrontFace));
   }
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyBlendEnable(bool force, GLState* cur) const
+void GLState::applyBlendEnable(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mBlendEnable != mBlendEnable))
   {
-    if (cur) cur->mBlendEnable = mBlendEnable;
     if (mBlendEnable)
       GL(glEnable(GL_BLEND));
     else
@@ -237,54 +231,46 @@ void GLState::applyBlendEnable(bool force, GLState* cur) const
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyBlendEquation(bool force, GLState* cur) const
+void GLState::applyBlendEquation(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mBlendEquation != mBlendEquation))
   {
-    if (cur) cur->mBlendEquation = mBlendEquation;
     GL(glBlendEquation(mBlendEquation));
   }
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyBlendFunction(bool force, GLState* cur) const
+void GLState::applyBlendFunction(bool force, const GLState* cur) const
 {
   if (   force
       || (cur && cur->mBlendFuncSrc != mBlendFuncSrc)
       || (cur && cur->mBlendFuncDst != mBlendFuncDst))
   {
-    if (cur)
-    {
-      cur->mBlendFuncSrc = mBlendFuncSrc;
-      cur->mBlendFuncDst = mBlendFuncDst;
-    }
     GL(glBlendFunc(mBlendFuncSrc, mBlendFuncDst));
   }
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyDepthMask(bool force, GLState* cur) const
+void GLState::applyDepthMask(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mDepthMask != mDepthMask))
   {
-    if (cur) cur->mDepthMask = mDepthMask;
     GL(glDepthMask(mDepthMask));
   }
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyLineWidth(bool force, GLState* cur) const
+void GLState::applyLineWidth(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mLineWidth != mLineWidth))
   {
-    if (cur) cur->mLineWidth = mLineWidth;
     GL(glLineWidth(mLineWidth));
   }
 }
 
 
 //------------------------------------------------------------------------------
-void GLState::applyColorMask(bool force, GLState* cur) const
+void GLState::applyColorMask(bool force, const GLState* cur) const
 {
   if (   force 
       || (cur && cur->mColorMaskRed != mColorMaskRed)
@@ -292,13 +278,6 @@ void GLState::applyColorMask(bool force, GLState* cur) const
       || (cur && cur->mColorMaskBlue != mColorMaskBlue)
       || (cur && cur->mColorMaskAlpha != mColorMaskAlpha))
   {
-    if (cur)
-    {
-      cur->mColorMaskRed   = mColorMaskRed;
-      cur->mColorMaskGreen = mColorMaskGreen;
-      cur->mColorMaskBlue  = mColorMaskBlue;
-      cur->mColorMaskAlpha = mColorMaskAlpha;
-    }
     GL(glColorMask(mColorMaskRed, mColorMaskGreen, mColorMaskBlue, mColorMaskAlpha));
   }
 }
@@ -319,12 +298,10 @@ std::tuple<GLboolean, GLboolean, GLboolean, GLboolean> GLState::getColorMask() c
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyLineSmoothing(bool force, GLState* cur) const
+void GLState::applyLineSmoothing(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mLineSmoothing != mLineSmoothing))
   {
-    if (cur) cur->mLineSmoothing = mLineSmoothing;
-
     // Line smoothing not supported in OpenGL ES.
 #ifndef CPM_GL_STATE_ES_2
     if (mLineSmoothing)
@@ -340,11 +317,10 @@ void GLState::applyLineSmoothing(bool force, GLState* cur) const
 }
 
 //------------------------------------------------------------------------------
-void GLState::applyActiveTexture(bool force, GLState* cur) const
+void GLState::applyActiveTexture(bool force, const GLState* cur) const
 {
   if (force || (cur && cur->mTexActiveUnit!= mTexActiveUnit))
   {
-    if (cur) cur->mTexActiveUnit = mTexActiveUnit;
     glActiveTexture(mTexActiveUnit);
   }
 }
