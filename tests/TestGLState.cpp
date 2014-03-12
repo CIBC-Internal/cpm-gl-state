@@ -172,13 +172,6 @@ TEST_F(SpireTestFixture, TestGLState)
   testState.setLineWidth(1.0f);
   EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
 
-  // Set line smoothing
-  testState = defaultState;
-  testState.setLineSmoothingEnable(true);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
-  testState.setLineSmoothingEnable(false);
-  EXPECT_EQ(true, applyAndTestStateAgainstOpenGL(testState));
-
   // Set active texture unit (only tests till 3)
   testState = defaultState;
   testState.setActiveTexture(GL_TEXTURE0);

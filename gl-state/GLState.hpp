@@ -138,13 +138,6 @@ public:
   float   getLineWidth() const      {return mLineWidth;}
   void    applyLineWidth(bool force, const GLState* curState = nullptr) const;
 
-  /// Set line smoothing.
-  /// OpenGL: glEnable(GL_LINE_SMOOTH) / glDisable(GL_LINE_SMOOTH)
-  /// NOTE: Not supported in OpenGL ES.
-  void    setLineSmoothingEnable(bool value)  {mLineSmoothing = value;}
-  bool    getLineSmoothingEnable() const      {return mLineSmoothing;}
-  void    applyLineSmoothing(bool force, const GLState* curState = nullptr) const;
-
   /// Set active texture unit.
   /// OpenGL: glActiveTexture(value)
   /// Example values: GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, ...
@@ -173,7 +166,6 @@ public:
   GLboolean   mColorMaskAlpha;
 
   float       mLineWidth;       ///< glLineWidth(...)
-  bool        mLineSmoothing;   ///< GL_LINE_SMOOTH - Anti-aliasing for lines
 
   GLenum      mTexActiveUnit;   ///< Active texture unit.
 

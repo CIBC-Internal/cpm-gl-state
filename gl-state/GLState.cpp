@@ -21,7 +21,6 @@ GLState::GLState() :
     mColorMaskBlue(GL_TRUE),
     mColorMaskAlpha(GL_TRUE),
     mLineWidth(2.0f),
-    mLineSmoothing(false),
     mTexActiveUnit(GL_TEXTURE0)
 {
 }
@@ -52,7 +51,6 @@ bool GLState::operator==(const GLState &o) const
        && mColorMaskBlue      == o.mColorMaskBlue
        && mColorMaskAlpha     == o.mColorMaskAlpha
        && areFloatSame(mLineWidth, o.mLineWidth)
-       && mLineSmoothing      == o.mLineSmoothing
        && mTexActiveUnit      == o.mTexActiveUnit);
        
 }
@@ -104,7 +102,6 @@ void GLState::applyStateInternal(bool force, const GLState* state) const
   applyDepthMask(force, state);
   applyColorMask(force, state);
   applyLineWidth(force, state);
-  applyLineSmoothing(force, state);
   applyActiveTexture(force, state);
 }
 
@@ -156,10 +153,6 @@ void GLState::readStateFromOpenGL()
   GLfloat f;
   glGetFloatv(GL_LINE_WIDTH, &f);
   mLineWidth = f;
-
-  // Line smoothing
-  glGetBooleanv(GL_LINE_SMOOTH, &b);
-  mLineSmoothing = b;
 
   // Active texture unit
   glGetIntegerv(GL_ACTIVE_TEXTURE, &e);
@@ -295,25 +288,6 @@ void GLState::setColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboo
 std::tuple<GLboolean, GLboolean, GLboolean, GLboolean> GLState::getColorMask() const
 {
   return std::make_tuple(mColorMaskRed, mColorMaskGreen, mColorMaskBlue, mColorMaskAlpha);
-}
-
-//------------------------------------------------------------------------------
-void GLState::applyLineSmoothing(bool force, const GLState* cur) const
-{
-  if (force || (cur && cur->mLineSmoothing != mLineSmoothing))
-  {
-    // Line smoothing not supported in OpenGL ES.
-#ifndef CPM_GL_STATE_ES_2
-    if (mLineSmoothing)
-    {
-      GL(glEnable(GL_LINE_SMOOTH));
-    }
-    else
-    {
-      GL(glDisable(GL_LINE_SMOOTH));
-    }
-#endif
-  }
 }
 
 //------------------------------------------------------------------------------
