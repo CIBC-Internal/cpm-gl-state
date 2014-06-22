@@ -35,7 +35,7 @@ endif()
 # ++ MODULE: GL Platform
 CPM_AddModule("gl_platform"
   GIT_REPOSITORY "https://github.com/CIBC-Internal/cpm-gl-platform.git"
-  GIT_TAG "1.3.6"
+  GIT_TAG "origin/master"
   EXPORT_MODULE TRUE
   USE_EXISTING_VER TRUE)
 

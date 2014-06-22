@@ -53,13 +53,13 @@ CPM_AddModule("gl_state"
 # ++ EXTERNAL-MODULE: Google Test
 CPM_AddModule("google_test"
   GIT_REPOSITORY "https://github.com/CIBC-Internal/cpm-google-test"
-  GIT_TAG "1.0.2"
+  GIT_TAG "origin/master"
   USE_EXISTING_VER TRUE)
 
 # ++ MODULE: batch_testing
 CPM_AddModule("batch_testing"
   GIT_REPOSITORY "https://github.com/CIBC-Internal/cpm-gl-batch-testing"
-  GIT_TAG "1.1.2")
+  GIT_TAG "origin/master")
 
 CPM_Finish()
 
